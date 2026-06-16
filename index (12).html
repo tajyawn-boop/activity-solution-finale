@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수련회 활동 솔루션 도우미</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef4f1; --bg-2: #e0ebe5; --card: #ffffff;
+    --ink: #243530; --ink-soft: #56655f; --ink-faint: #8a9893;
+    --line: #d2e2da; --teal: #2f8f7a; --teal-deep: #1f6b5a;
+    --amber: #d8932f; --coral: #d96b5c; --sky: #4d8bb0;
+    --shadow: rgba(30, 70, 60, 0.14);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif; background: var(--bg);
+    color: var(--ink); line-height: 1.8; -webkit-tap-highlight-color: transparent;
+    font-size: 17px;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(circle at 12% 5%, rgba(47,143,122,0.10), transparent 42%),
+      radial-gradient(circle at 88% 8%, rgba(77,139,176,0.08), transparent 42%);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 90px; position: relative; z-index: 1; }
+  header { text-align: center; padding: 44px 14px 14px; }
+  .badge {
+    display: inline-block; font-family: 'Jua', sans-serif;
+    background: var(--teal); color: #fff; font-size: 0.95rem;
+    padding: 6px 20px; border-radius: 18px; margin-bottom: 13px;
+  }
+  h1 { font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 2.2rem; line-height: 1.35; }
+  .tagline { color: var(--ink-soft); font-size: 1rem; margin-top: 8px; }
+
+  .step-label {
+    font-family: 'Jua', sans-serif; font-size: 1.15rem; color: var(--teal-deep);
+    margin: 28px 0 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .step-num {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--teal);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+
+  /* 선택 그리드 */
+  .choice-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 11px;
+  }
+  .choice {
+    background: var(--card); border: 2.5px solid var(--line);
+    border-radius: 15px; padding: 16px 13px; cursor: pointer;
+    text-align: center; transition: all 0.15s;
+    box-shadow: 0 3px 8px rgba(30,70,60,0.07);
+  }
+  .choice:hover { border-color: var(--teal); transform: translateY(-3px); }
+  .choice.on { border-color: var(--teal); background: var(--teal); }
+  .choice.on .ch-name, .choice.on .ch-desc { color: #fff; }
+  .choice.on .ch-desc { opacity: 0.9; }
+  .ch-icon { font-size: 2rem; margin-bottom: 6px; }
+  .ch-name { font-family: 'Jua', sans-serif; font-size: 1.05rem; }
+  .ch-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 3px; }
+
+  /* 솔루션 결과 */
+  .solution {
+    margin-top: 30px; display: none;
+  }
+  .solution.show { display: block; animation: fade 0.4s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .sol-head {
+    background: var(--teal); color: #fff; border-radius: 16px 16px 0 0;
+    padding: 18px 22px;
+  }
+  .sol-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .sol-tag {
+    font-size: 0.85rem; background: rgba(255,255,255,0.25);
+    padding: 3px 13px; border-radius: 12px;
+  }
+  .sol-core {
+    font-family: 'Gowun Batang', serif; font-size: 1.2rem; line-height: 1.6;
+  }
+  .sol-body {
+    background: var(--card); border: 2px solid var(--line); border-top: none;
+    border-radius: 0 0 16px 16px; padding: 20px 22px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .sol-section-title {
+    font-family: 'Jua', sans-serif; font-size: 1.05rem; color: var(--teal-deep);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .sol-steps { list-style: none; margin-bottom: 18px; }
+  .sol-steps li {
+    padding: 9px 0 9px 38px; position: relative; font-size: 1.02rem;
+    border-bottom: 1px dashed var(--line);
+  }
+  .sol-steps li:last-child { border-bottom: none; }
+  .sol-steps li .num {
+    position: absolute; left: 0; top: 9px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg-2); color: var(--teal-deep);
+    font-family: 'Jua', sans-serif; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sol-caution {
+    background: #fdf3e7; border-left: 4px solid var(--amber);
+    border-radius: 8px; padding: 13px 16px; font-size: 0.98rem; color: #8a5a16;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .sol-foot {
+    margin-top: 16px; background: var(--bg-2); border-radius: 12px;
+    padding: 14px 18px; font-size: 0.95rem; color: var(--ink-soft);
+  }
+  .sol-foot b { color: var(--teal-deep); font-family: 'Gowun Batang', serif; }
+
+  .placeholder {
+    margin-top: 30px; text-align: center; padding: 40px 20px;
+    color: var(--ink-faint); background: var(--card);
+    border: 2px dashed var(--line); border-radius: 16px;
+  }
+  .placeholder .big { font-size: 2.6rem; margin-bottom: 8px; }
+
+  /* 자유 입력 */
+  .free-text {
+    width: 100%; min-height: 80px; resize: vertical;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 1rem; line-height: 1.6;
+    color: var(--ink); background: var(--card);
+    border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  }
+  .free-text:focus { outline: none; border-color: var(--teal); }
+
+  /* 방법 보기 버튼 */
+  .solve-btn {
+    width: 100%; margin-top: 18px; padding: 16px;
+    font-family: 'Jua', sans-serif; font-size: 1.15rem; color: #fff;
+    background: var(--teal); border: none; border-radius: 14px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--teal-deep); transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .solve-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .solve-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--teal-deep); }
+  .solve-btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: 0 4px 0 var(--teal-deep); }
+
+  /* 로딩 (텍스트 없는 점 애니메이션) */
+  .loading-dots { display: none; margin: 30px auto 0; text-align: center; }
+  .loading-dots.show { display: block; }
+  .loading-dots span {
+    display: inline-block; width: 12px; height: 12px; margin: 0 5px;
+    background: var(--teal); border-radius: 50%; opacity: 0.4;
+    animation: dotpulse 1.2s infinite ease-in-out both;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotpulse { 0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+  .sol-error { display: none; margin-top: 20px; padding: 16px 18px; border-radius: 14px;
+    background: #fdecea; color: #b4493a; font-size: 0.95rem; line-height: 1.6; }
+  .sol-error.show { display: block; }
+
+  footer {
+    text-align: center; margin-top: 38px; padding-top: 20px;
+    border-top: 2px dashed var(--line); color: var(--ink-faint);
+    font-family: 'Jua', sans-serif; font-size: 0.88rem;
+  }
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    h1 { font-size: 1.8rem; }
+    .choice-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">🤝 모두가 함께하는 수련회</div>
+    <h1>수련회 활동<br>솔루션 도우미</h1>
+    <p class="tagline">활동과 상황을 고르면, 장애 학우와 함께하는 구체적인 방법을 알려드려요</p>
+  </header>
+
+  <div class="step-label"><span class="step-num">1</span>지금 어떤 활동인가요?</div>
+  <div class="choice-grid" id="activity-grid"></div>
+
+  <div class="step-label"><span class="step-num">2</span>어떤 친구와 함께하나요?</div>
+  <div class="choice-grid" id="condition-grid"></div>
+
+  <div class="step-label"><span class="step-num">3</span>상황을 자유롭게 적어주세요 <span style="font-weight:400;color:var(--ink-soft);font-size:0.85em;">(선택 — 버튼만 골라도 돼요)</span></div>
+  <textarea id="free-text" class="free-text" maxlength="400"
+    placeholder="예) 물놀이 시간인데 휠체어를 타는 학생이 있어요. 어떻게 같이 놀 수 있을까요?"></textarea>
+
+  <button class="solve-btn" id="solve-btn" onclick="generateSolution()">💡 함께하는 방법 보기</button>
+
+  <div class="loading-dots" id="loading-dots"><span></span><span></span><span></span></div>
+  <div class="sol-error" id="sol-error"></div>
+
+  <div class="placeholder" id="placeholder">
+    <div class="big">💡</div>
+    위에서 <b>활동</b>과 <b>친구의 상황</b>을 고르고<br><b>방법 보기</b> 버튼을 눌러주세요.
+  </div>
+
+  <div class="solution" id="solution">
+    <div class="sol-head">
+      <div class="sol-tags" id="sol-tags"></div>
+      <div class="sol-core" id="sol-core"></div>
+    </div>
+    <div class="sol-body">
+      <div class="sol-section-title">🌿 이렇게 함께해요</div>
+      <ul class="sol-steps" id="sol-steps"></ul>
+      <div class="sol-caution">
+        <span>⚠️</span><span id="sol-caution"></span>
+      </div>
+      <div class="sol-foot">
+        <b>가장 중요한 것</b><br>
+        이 안내는 출발점이에요. 같은 상황이어도 학생마다 달라요.
+        가장 정확한 것은 <b>그 학생과 가족에게 직접 듣는 것</b>이에요.
+        "무엇이 있으면 더 편할까?"라고 물어봐 주세요.
+      </div>
+    </div>
+  </div>
+
+  <footer>수련회 활동 솔루션 도우미 — 청소년부 수련회</footer>
+</div>
+
+<script>
+// 수련회 활동 솔루션 도우미 — 활동 × 학생 상황별 솔루션
+// 시혜적이지 않게, "함께 누리는 법"으로. 출발점일 뿐 — 그 학생·가족에게 직접 듣기로 마무리.
+
+const ACTIVITIES = [
+  { id: 'praise',  icon: '🎵', name: '찬양 시간',        desc: '함께 찬양하고 마음을 모으는 시간' },
+  { id: 'word',    icon: '📖', name: '말씀 시간',        desc: '설교·말씀을 듣고 나누는 시간' },
+  { id: 'sport',   icon: '⚽', name: '체육 활동',        desc: '몸으로 함께 뛰고 노는 시간' },
+  { id: 'lesson',  icon: '✏️', name: '공과 활동',        desc: '조별로 말씀을 나누고 활동하는 시간' },
+  { id: 'rest',    icon: '🍚', name: '쉬는 시간·식사·이동', desc: '일상의 순간들 — 함께 쉬고 먹고 움직이는 시간' }
+];
+
+const CONDITIONS = [
+  { id: 'move',    icon: '🦽', name: '이동이 어려운 학생' },
+  { id: 'see',     icon: '👁️', name: '보는 데 어려움이 있는 학생' },
+  { id: 'hear',    icon: '👂', name: '듣는 데 어려움이 있는 학생' },
+  { id: 'dev',     icon: '🌱', name: '발달·인지적 어려움이 있는 학생' },
+  { id: 'sense',   icon: '🌊', name: '감각이 예민한 학생' },
+  { id: 'focus',   icon: '🎯', name: '집중이 오래 어려운 학생' }
+];
+
+// SOLUTIONS[activityId][conditionId] = { core, steps:[], caution }
+const SOLUTIONS = {
+  praise: {
+    move: {
+      core: '서서 부르지 못해도 괜찮아요. 앉은 자리에서 함께 누리도록 도와요.',
+      steps: [
+        '휠체어나 의자에 앉은 채로도 잘 보이고 들리는 자리를 미리 잡아둬요.',
+        '율동이 있으면 손·팔만으로 할 수 있게 바꿔서, 옆에서 함께 해요.',
+        '꼭 동작을 따라 하지 않아도 돼요. 음악을 느끼고 함께 있는 것만으로 충분해요.'
+      ],
+      caution: '억지로 일으켜 세우거나 동작을 강요하지 않아요. 함께 있는 그 자체가 찬양이에요.'
+    },
+    see: {
+      core: '가사가 보이지 않아도, 소리로 충분히 함께할 수 있어요.',
+      steps: [
+        '익숙한 곡을 고르면 따라 부르기 쉬워요. 새 곡은 미리 들려줘 익히게 해요.',
+        '옆에서 다음 가사를 작은 소리로 살짝 알려주거나, 손뼉 박자로 흐름을 짚어줘요.',
+        '"지금 일어서서 부를 거야"처럼 다음 동작을 말로 미리 알려줘요.'
+      ],
+      caution: '"화면 보세요" 같은 말 대신, 무엇을 하는지 말로 전해요.'
+    },
+    hear: {
+      core: '소리가 잘 안 들려도, 보이는 것으로 함께할 수 있어요.',
+      steps: [
+        '가사를 화면이나 종이로 크게 보여줘, 눈으로 따라오게 해요.',
+        '박자를 손이나 몸으로 보여주면, 리듬을 함께 느낄 수 있어요.',
+        '진동이 느껴지는 자리(스피커 근처)도 음악을 몸으로 느끼는 데 도움이 돼요.'
+      ],
+      caution: '큰 소리로 부르라고 재촉하지 않아요. 함께 있는 방식은 저마다 달라요.'
+    },
+    dev: {
+      core: '다 따라 하지 못해도 괜찮아요. 반복되는 익숙함이 안정감을 줘요.',
+      steps: [
+        '같은 곡을 반복하면 익숙해져서 더 편하게 참여해요.',
+        '간단한 동작 한두 개만 정해 함께 해요. 많이 가르치려 하지 않아요.',
+        '잘 참여하면 그 자리에서 구체적으로 칭찬해요 — "박수 같이 쳤네, 멋지다".'
+      ],
+      caution: '소리를 내거나 다르게 움직여도 괜찮아요. 그 학생만의 찬양일 수 있어요.'
+    },
+    sense: {
+      core: '큰 음향이 힘들 수 있어요. 도망이 아니라, 끝까지 함께하기 위한 쉼을 허락해요.',
+      steps: [
+        '음향이 커지는 순서를 미리 알려줘 마음의 준비를 하게 해요.',
+        '귀마개를 허용하고, 힘들면 잠깐 나가 쉴 수 있는 곳을 미리 정해둬요.',
+        '뒤쪽이나 문 가까운 자리처럼, 빠져나가기 편한 자리를 골라줘요.'
+      ],
+      caution: '"왜 빠지려 해"라고 다그치지 않아요. 쉬고 오는 것도 참여의 한 방식이에요.'
+    },
+    focus: {
+      core: '끝까지 집중 못 해도 괜찮아요. 짧게라도 함께한 순간이 의미 있어요.',
+      steps: [
+        '한 곡만이라도 집중해 함께하면 충분해요. 전부를 기대하지 않아요.',
+        '몸을 움직이는 율동이 있는 곡이 오히려 더 잘 참여할 수 있어요.',
+        '산만해 보여도 조용히 곁을 지켜요. 다그치면 더 힘들어해요.'
+      ],
+      caution: '가만히 있지 못하는 걸 혼내지 않아요. 그 자리에 있어 준 것만으로 잘한 거예요.'
+    }
+  },
+  word: {
+    move: {
+      core: '듣는 데는 이동의 어려움이 영향을 주지 않아요. 편한 자세로 듣게 도와요.',
+      steps: [
+        '오래 같은 자세가 힘들 수 있으니, 중간에 자세를 바꿀 수 있게 배려해요.',
+        '잘 보이고 들리는 앞쪽 자리를 미리 잡아둬요.',
+        '말씀 후 나눔 때, 자연스럽게 의견을 물어 함께 참여하게 해요.'
+      ],
+      caution: '오래 앉아 있기 힘들어하면, 잠깐 자세를 푸는 걸 눈치 주지 않아요.'
+    },
+    see: {
+      core: '화면 자료가 안 보여도, 말로 들으면 충분히 따라올 수 있어요.',
+      steps: [
+        'PPT·영상에 의존하지 말고, 중요한 내용은 말로 충분히 설명해요.',
+        '"화면에 이런 그림이 있어"처럼 보이는 것을 말로 풀어줘요.',
+        '성경 본문은 미리 음성으로 듣게 하거나, 큰 글씨 자료를 준비해요.'
+      ],
+      caution: '시각 자료 위주로만 진행하면 소외돼요. 귀로 듣는 것도 충분히 챙겨요.'
+    },
+    hear: {
+      core: '설교가 잘 안 들려도, 보이는 것으로 말씀을 만날 수 있어요.',
+      steps: [
+        '설교 핵심을 화면이나 종이로 글로 함께 보여줘요.',
+        '천천히, 입이 잘 보이게 말하면 입모양으로도 따라올 수 있어요.',
+        '수어 통역이 가능한지 미리 알아보고, 어려우면 요약 메모를 곁에서 적어줘요.'
+      ],
+      caution: '"중요한 건 끝나고 알려줄게"로 미루지 않아요. 그 순간 함께 듣게 도와요.'
+    },
+    dev: {
+      core: '긴 설교가 어려울 수 있어요. 짧고 쉬운 핵심 하나면 충분해요.',
+      steps: [
+        '오늘 말씀의 핵심을 아주 쉬운 한 문장으로 곁에서 짚어줘요 — "하나님이 너를 사랑하셔".',
+        '그림이나 간단한 활동으로 말씀을 함께 떠올리게 해요.',
+        '오래 듣기 힘들면, 핵심만 함께하고 나머지는 무리하지 않아요.'
+      ],
+      caution: '다 이해시키려 하지 않아요. 한 가지 따뜻한 메시지가 마음에 남으면 충분해요.'
+    },
+    sense: {
+      core: '조용해야 하는 시간이 길면 힘들 수 있어요. 작은 숨 쉴 틈을 줘요.',
+      steps: [
+        '조용히 만질 수 있는 물건(피젯 등)을 허용하면 오히려 집중에 도움이 돼요.',
+        '너무 길어지면 잠깐 뒤에서 쉬었다 오게 해요.',
+        '갑작스러운 큰 소리(통성기도 등)는 미리 알려줘요.'
+      ],
+      caution: '가만히, 조용히만을 강요하지 않아요. 그 학생에겐 큰 노력일 수 있어요.'
+    },
+    focus: {
+      core: '긴 말씀 내내 집중은 어려워요. 짧은 참여의 순간을 만들어줘요.',
+      steps: [
+        '중간중간 "방금 뭐라고 하셨지?"처럼 가볍게 말을 걸어 다시 끌어와요.',
+        '핵심 순간에만 집중하도록, 곁에서 "이 부분 중요해" 하고 살짝 짚어줘요.',
+        '손으로 적거나 그리게 하면 집중에 도움이 돼요.'
+      ],
+      caution: '딴짓한다고 혼내면 위축돼요. 다시 부드럽게 데려오는 걸로 충분해요.'
+    }
+  },
+  sport: {
+    move: {
+      core: '못 뛰어도 괜찮아요. 활동을 바꾸면 함께 즐길 수 있어요.',
+      steps: [
+        '공을 굴리거나 던지는 역할, 점수 세기, 심판 등 함께할 자리를 만들어줘요.',
+        '휠체어째 참여할 수 있는 게임(풍선 배구, 굴리기 등)으로 바꿔요.',
+        '한 팀에 꼭 넣어, 응원하고 함께 기뻐하는 자리를 줘요.'
+      ],
+      caution: '구경만 시키지 않아요. "어떻게 하면 같이 할까"를 먼저 고민해요.'
+    },
+    see: {
+      core: '보이지 않아도, 소리와 짝의 도움으로 함께 뛸 수 있어요.',
+      steps: [
+        '소리 나는 공을 쓰거나, 짝이 손을 잡고 함께 움직여요.',
+        '경기 상황을 옆에서 말로 중계하듯 알려줘요 — "공이 왼쪽으로 왔어!".',
+        '안전이 우선이니, 부딪힐 위험이 없는 활동으로 바꿔요.'
+      ],
+      caution: '"위험하니 빠져 있어"가 아니라, 안전하게 함께할 방법을 찾아요.'
+    },
+    hear: {
+      core: '호각·구령이 안 들려도, 보이는 신호로 함께할 수 있어요.',
+      steps: [
+        '호각 대신 손짓·깃발 같은 눈에 보이는 신호를 정해 함께 써요.',
+        '규칙을 시작 전에 그림이나 시범으로 충분히 보여줘요.',
+        '짝을 정해, 다음 차례나 상황을 몸짓으로 알려주게 해요.'
+      ],
+      caution: '말로만 빠르게 규칙을 설명하고 시작하지 않아요. 보여주고 시작해요.'
+    },
+    dev: {
+      core: '복잡한 규칙이 어려울 수 있어요. 단순하게 바꾸면 함께 즐겨요.',
+      steps: [
+        '규칙을 아주 단순하게 줄여요. 한두 가지 동작만 있는 게임이 좋아요.',
+        '시범을 여러 번 보여주고, 옆에서 함께 동작해요.',
+        '이기고 지는 것보다 함께 움직이는 즐거움에 초점을 둬요.'
+      ],
+      caution: '못 따라온다고 빼지 않아요. 규칙을 그 학생에 맞게 바꾸면 돼요.'
+    },
+    sense: {
+      core: '시끄럽고 북적이는 활동이 힘들 수 있어요. 강도를 조절해줘요.',
+      steps: [
+        '너무 시끄럽거나 몸이 부딪히는 격한 게임은 피하거나 변형해요.',
+        '잠깐 빠져 쉬다가 다시 들어오는 걸 자유롭게 허용해요.',
+        '조용한 역할(점수 기록 등)을 좋아하면 그 자리를 줘요.'
+      ],
+      caution: '"왜 안 해"라고 밀어붙이지 않아요. 참여의 정도는 달라도 돼요.'
+    },
+    focus: {
+      core: '한 가지에 오래 집중이 어려워요. 짧고 활동적인 게임이 잘 맞아요.',
+      steps: [
+        '짧게 끝나는 게임을 여러 번 하는 게, 긴 게임 하나보다 좋아요.',
+        '몸을 많이 쓰는 활동이 오히려 에너지를 풀어줘 도움이 돼요.',
+        '역할을 자주 바꿔주면 흥미를 유지해요.'
+      ],
+      caution: '규칙을 안 지킨다고 다그치기보다, 활동을 짧고 단순하게 바꿔요.'
+    }
+  },
+  lesson: {
+    move: {
+      core: '나눔과 활동에 이동은 큰 장벽이 아니에요. 자리만 잘 잡으면 돼요.',
+      steps: [
+        '조 모임 장소를 휠체어로 닿을 수 있는 곳으로 정해요.',
+        '책상·자료 높이를 맞춰, 함께 쓰고 활동할 수 있게 해요.',
+        '발표나 나눔 때 자연스럽게 차례를 줘, 함께 참여하게 해요.'
+      ],
+      caution: '활동 장소를 계단 위로 정해 빠지게 만들지 않아요. 미리 동선을 살펴요.'
+    },
+    see: {
+      core: '읽기 자료가 안 보여도, 듣고 말하며 함께 나눌 수 있어요.',
+      steps: [
+        '유인물을 큰 글씨로 준비하거나, 내용을 소리 내어 함께 읽어요.',
+        '그림·만들기 활동은 촉감으로 할 수 있는 것으로 바꿔요.',
+        '짝이 자료를 읽어주고, 함께 이야기 나누게 해요.'
+      ],
+      caution: '"읽어보세요"로 끝내지 않아요. 듣고 말하는 방식으로 함께해요.'
+    },
+    hear: {
+      core: '말로 하는 나눔이 어려워도, 글과 글쓰기로 함께할 수 있어요.',
+      steps: [
+        '나눔 내용을 글로도 적어 보여주고, 글로 답하게 해요.',
+        '한 명씩 말할 때 누가 말하는지 알 수 있게 해요.',
+        '조원들이 천천히, 얼굴을 보고 말하도록 분위기를 이끌어요.'
+      ],
+      caution: '말로만 빠르게 진행하면 따라오기 어려워요. 글을 함께 써요.'
+    },
+    dev: {
+      core: '깊은 토론이 어려울 수 있어요. 쉽고 구체적인 질문으로 함께해요.',
+      steps: [
+        '"예/아니오"나 그림 고르기처럼 답하기 쉬운 방식으로 물어요.',
+        '추상적인 말("은혜")보다 구체적인 말("고마운 일")로 풀어줘요.',
+        '만들기·색칠처럼 손으로 하는 활동으로 말씀을 함께 표현해요.'
+      ],
+      caution: '대답을 못 한다고 건너뛰지 않아요. 그 학생이 할 수 있는 방식으로 물어요.'
+    },
+    sense: {
+      core: '좁은 공간에 모여 오래 있는 게 힘들 수 있어요. 여유를 줘요.',
+      steps: [
+        '너무 붙어 앉지 않게, 조금 여유 있는 자리를 줘요.',
+        '활동이 길어지면 잠깐 쉬는 틈을 둬요.',
+        '조용히 만질 수 있는 물건을 허용해 안정감을 줘요.'
+      ],
+      caution: '"집중해"라고만 하지 않아요. 환경을 편하게 바꿔주는 게 먼저예요.'
+    },
+    focus: {
+      core: '가만히 앉아 나누기가 어려워요. 짧고 손을 쓰는 활동이 좋아요.',
+      steps: [
+        '말로만 하는 나눔보다, 쓰고 그리고 만드는 활동을 섞어요.',
+        '한 번에 하나씩, 짧게 진행해요.',
+        '집중이 흐트러지면 가벼운 활동으로 전환해 다시 모아요.'
+      ],
+      caution: '오래 앉아 있길 강요하지 않아요. 활동을 잘게 나누면 함께할 수 있어요.'
+    }
+  },
+  rest: {
+    move: {
+      core: '이동·식사·화장실 — 일상의 순간에 미리 살펴주면 편안해져요.',
+      steps: [
+        '식당·화장실·숙소 동선에 턱이나 계단이 없는지 미리 확인해요.',
+        '식사 때 자리를 잡아주고, 필요하면 배식을 도와요(원하는지 먼저 물어요).',
+        '이동 시간을 넉넉히 둬서 재촉하지 않아도 되게 해요.'
+      ],
+      caution: '묻지 않고 휠체어를 밀지 않아요. "도와줄까?" 먼저 물어요.'
+    },
+    see: {
+      core: '낯선 공간을 익히도록 도우면, 혼자서도 편하게 다닐 수 있어요.',
+      steps: [
+        '처음에 숙소·식당·화장실까지 함께 걸으며 길과 위험한 곳을 익히게 해요.',
+        '식사 때 어디에 무엇이 있는지 시계 방향으로 알려줘요 — "3시 방향에 국".',
+        '자리나 물건 위치를 함부로 바꾸지 않아요.'
+      ],
+      caution: '갑자기 팔을 잡아끌지 않아요. 교사의 팔을 잡게 해 스스로 걷게 해요.'
+    },
+    hear: {
+      core: '방송·구두 안내를 놓칠 수 있어요. 직접 전해주면 돼요.',
+      steps: [
+        '"식사 시간이야", "지금 이동해"처럼 중요한 안내를 곁에서 직접 알려줘요.',
+        '비상 상황의 사이렌·방송을 못 들을 수 있으니, 위급 시 알릴 사람을 정해둬요.',
+        '글이나 휴대폰 메모로 소통하는 걸 자연스럽게 활용해요.'
+      ],
+      caution: '단체 방송만 믿지 않아요. 그 학생에게 따로 전해주는 사람이 필요해요.'
+    },
+    dev: {
+      core: '다음에 뭘 할지 모르면 불안해요. 미리, 분명하게 알려주면 편안해져요.',
+      steps: [
+        '다음 일정을 미리 알려줘요 — "밥 먹고, 그다음 쉬는 시간이야".',
+        '그림이나 사진으로 하루 흐름을 보여주면 안정감을 줘요.',
+        '갑작스러운 변경을 줄이고, 바뀌면 차분히 미리 설명해요.'
+      ],
+      caution: '예고 없이 일정을 바꾸지 않아요. 예측이 되면 훨씬 편안해해요.'
+    },
+    sense: {
+      core: '북적이는 식당·시끄러운 쉬는 시간이 힘들 수 있어요. 쉴 곳을 줘요.',
+      steps: [
+        '식사를 조금 일찍/늦게 해서 붐비는 때를 피하게 해줄 수 있어요.',
+        '소리·자극에서 벗어나 쉴 조용한 공간을 한 곳 마련해둬요.',
+        '특정 음식의 냄새·식감이 힘들 수 있으니, 가족에게 미리 들어둬요.'
+      ],
+      caution: '"다 같이 먹어야지"라고 강요하지 않아요. 쉬어가는 걸 허용해요.'
+    },
+    focus: {
+      core: '자유 시간에 길을 잃거나 이탈하기 쉬워요. 느슨하지만 곁을 지켜요.',
+      steps: [
+        '쉬는 시간에도 어디에 있는지 가볍게 살펴요.',
+        '"다음 모이는 시간은 ○시야"를 분명히, 여러 번 알려줘요.',
+        '할 일이 없으면 불안정해질 수 있으니, 함께할 가벼운 활동을 권해요.'
+      ],
+      caution: '자유 시간이라고 완전히 눈을 떼지 않아요. 안전이 우선이에요.'
+    }
+  }
+};
+
+</script>
+<script>
+// ============================================
+// API 키는 이 파일에 없습니다.
+// Vercel 환경변수 GEMINI_API_KEY 에 저장되어 /api/gemini 서버에서만 사용됩니다.
+// ============================================
+
+let selActivity = null;
+let selCondition = null;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderChoices() {
+  document.getElementById('activity-grid').innerHTML = ACTIVITIES.map(a => `
+    <div class="choice" data-type="act" data-id="${a.id}">
+      <div class="ch-icon">${a.icon}</div>
+      <div class="ch-name">${esc(a.name)}</div>
+      <div class="ch-desc">${esc(a.desc)}</div>
+    </div>`).join('');
+  document.getElementById('condition-grid').innerHTML = CONDITIONS.map(c => `
+    <div class="choice" data-type="cond" data-id="${c.id}">
+      <div class="ch-icon">${c.icon}</div>
+      <div class="ch-name">${esc(c.name)}</div>
+    </div>`).join('');
+
+  document.querySelectorAll('.choice').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const type = ch.dataset.type;
+      const grid = type === 'act' ? 'activity-grid' : 'condition-grid';
+      document.querySelectorAll('#' + grid + ' .choice').forEach(c => c.classList.remove('on'));
+      ch.classList.add('on');
+      if (type === 'act') selActivity = ch.dataset.id;
+      else selCondition = ch.dataset.id;
+    });
+  });
+}
+
+function renderSolution(act, cond, sol) {
+  const tags = [];
+  if (act) tags.push(`<span class="sol-tag">${act.icon} ${esc(act.name)}</span>`);
+  if (cond) tags.push(`<span class="sol-tag">${cond.icon} ${esc(cond.name)}</span>`);
+  document.getElementById('sol-tags').innerHTML = tags.join('');
+  document.getElementById('sol-core').textContent = sol.core || '';
+  document.getElementById('sol-steps').innerHTML = (sol.steps || []).map((s, i) =>
+    `<li><span class="num">${i + 1}</span>${esc(s)}</li>`).join('');
+  document.getElementById('sol-caution').textContent = sol.caution || '';
+
+  document.getElementById('placeholder').style.display = 'none';
+  const solEl = document.getElementById('solution');
+  solEl.classList.add('show');
+  solEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showError(msg) {
+  const e = document.getElementById('sol-error');
+  e.textContent = msg;
+  e.classList.add('show');
+}
+
+async function generateSolution() {
+  const act = ACTIVITIES.find(a => a.id === selActivity) || null;
+  const cond = CONDITIONS.find(c => c.id === selCondition) || null;
+  const freeText = document.getElementById('free-text').value.trim();
+
+  // 최소한 하나는 있어야 함
+  if (!act && !cond && !freeText) {
+    showError('활동이나 친구의 상황을 고르거나, 상황을 한 줄 적어주세요.');
+    return;
+  }
+
+  // UI: 로딩 시작 (AI 언급 없는 점 애니메이션)
+  const btn = document.getElementById('solve-btn');
+  btn.disabled = true;
+  document.getElementById('sol-error').classList.remove('show');
+  document.getElementById('solution').classList.remove('show');
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('loading-dots').classList.add('show');
+
+  const prompt = `당신은 한국 교회 청소년부 수련회에서 장애 학우와 비장애 학우가 함께 활동하도록 돕는, 따뜻하고 경험 많은 교사입니다.
+아래 상황에 맞춰, 그 학생이 활동을 '함께 누릴 수 있는' 구체적인 방법을 안내해 주세요.
+
+[상황]
+${act ? '- 활동: ' + act.name + ' (' + act.desc + ')' : '- 활동: (지정 안 됨)'}
+${cond ? '- 함께하는 친구: ' + cond.name : '- 함께하는 친구: (지정 안 됨)'}
+${freeText ? '- 추가 설명: ' + freeText : ''}
+
+[작성 원칙]
+- 시혜적이거나 동정하는 말투를 절대 쓰지 마세요. "도와준다"가 아니라 "함께 누린다"는 관점으로.
+- 그 학생을 특별 취급하거나 분리하지 않고, 자연스럽게 함께하는 방법으로.
+- 따뜻하고 쉬운 한국어로, 교사가 바로 실천할 수 있게 구체적으로.
+- 억지로 시키거나 강요하지 않는 태도를 담아주세요.
+
+반드시 아래 JSON 형식으로만 응답하세요. 설명, 마크다운, 백틱 없이 순수 JSON만:
+{
+  "core": "핵심 한 문장 — 이 상황을 함께 누리는 마음가짐",
+  "steps": ["구체적 방법 1", "구체적 방법 2", "구체적 방법 3", "구체적 방법 4"],
+  "caution": "하지 말아야 할 것 / 주의할 점 한 문장"
+}
+steps는 3~5개로 작성하세요.`;
+
+  try {
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt, temperature: 0.8, jsonMode: true })
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) showError('잠시 후 다시 시도해 주세요. (요청이 많아요)');
+      else showError('방법을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+
+    const data = await response.json();
+    let text = (data.text || '')
+      .replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    let sol;
+    try { sol = JSON.parse(text); }
+    catch (e) { const m = text.match(/\{[\s\S]*\}/); if (m) { try { sol = JSON.parse(m[0]); } catch (e2) {} } }
+
+    if (!sol || (!sol.core && !Array.isArray(sol.steps))) {
+      showError('방법을 불러오지 못했어요. 다시 시도해 주세요.');
+      return;
+    }
+    sol.steps = Array.isArray(sol.steps) ? sol.steps : [];
+    renderSolution(act, cond, sol);
+  } catch (e) {
+    showError('연결에 문제가 있어요. 인터넷 연결을 확인하고 다시 시도해 주세요.');
+  } finally {
+    document.getElementById('loading-dots').classList.remove('show');
+    btn.disabled = false;
+  }
+}
+
+renderChoices();
+</script>
+</body>
+</html>

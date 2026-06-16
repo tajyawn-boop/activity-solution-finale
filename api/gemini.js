@@ -30,29 +30,47 @@ export default async function handler(req, res) {
       return;
     }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/"
-      + model + ":generateContent";
-
     const genConfig = { temperature: temperature };
     if (jsonMode) genConfig.responseMimeType = "application/json";
 
-    const r = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": key
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: genConfig
-      })
-    });
+    // 503(과부하) 등 일시적 오류에 대비: 재시도 + 모델 폴백
+    const models = [model, "gemini-2.0-flash", "gemini-flash-latest"];
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    const data = await r.json();
+    let lastStatus = 0, lastDetail = "", data = null, ok = false;
 
-    if (!r.ok) {
-      const msg = (data && data.error && data.error.message) ? data.error.message : ("Gemini error " + r.status);
-      res.status(r.status).json({ error: msg });
+    outer:
+    for (let mi = 0; mi < models.length; mi++) {
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/"
+        + models[mi] + ":generateContent";
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: genConfig
+          })
+        });
+
+        if (r.ok) { data = await r.json(); ok = true; break outer; }
+
+        lastStatus = r.status;
+        try { const e = await r.json(); lastDetail = (e && e.error && e.error.message) ? e.error.message : ""; }
+        catch (e) { lastDetail = ""; }
+
+        // 503/429/500 은 잠깐 기다렸다 재시도, 그 외는 즉시 다음 모델로
+        if (r.status === 503 || r.status === 429 || r.status === 500) {
+          await sleep(600 * (attempt + 1));
+          continue;
+        } else {
+          break; // 다음 모델 시도
+        }
+      }
+    }
+
+    if (!ok) {
+      res.status(lastStatus || 503).json({ error: lastDetail || ("Gemini error " + (lastStatus || "unknown")) });
       return;
     }
 
